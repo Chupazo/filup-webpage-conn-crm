@@ -1,0 +1,21 @@
+{
+  "name": "filup-landing-calendar-back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git-codecommit.us-east-2.amazonaws.com/v1/repos/filup-landing-calendar-back"
+  },
+  "author": "",
+  "license": "ISC"
+}
