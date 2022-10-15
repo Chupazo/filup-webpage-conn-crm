@@ -1,55 +1,46 @@
 const cors = require('cors');
 const express = require('express');
 const axios = require('axios');
-const url = require('url');
+const connectDb = require('./db-config');
+const { renewTokenDB, findToken } = require('./db-functions');
+const { getNewToken } = require('./token-request');
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+connectDb();
 app.use(cors());
 
-async function getToken(req, res, next) {
-    //Axios instance made to handle http 200 responses tht contain errors
-    const tokenReq = axios.create({
-        baseURL: process.env.RefreshUrl.toString()
-    });
-
-    //Parameters needed to get token
-    const params = new url.URLSearchParams({
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-        refresh_token: process.env.REFRESH_TOKEN,
-        grant_type: 'refresh_token'
-    });
-    
-    //Interceptor that gets error from response (token request errors get http status 200 with the error inside data)
-    tokenReq.interceptors.response.use(res => {
-        if (res.data.error) {
-            // Error message is retrived from the JSON body 
-            const error = new Error(res.data.error);
-            error.response = res;
-            throw error;
-        }
-        return res;
-    })
-
-    //Get the actual token
-    try{
-        const accToken = await tokenReq.post('/oauth/v2/token', params.toString());        
-        req.token = accToken.data.access_token;
-        console.log(req.token);
-        next();
-    } catch (err) {
-       console.log(err)
-    }
-}
-
 app.use(express.json());
+app.use(findToken);
 
-app.get('/appt-dates', getToken, async (req, res, next) => {
-    //const body = req.body;
-    //console.log(req);
+app.get('/appt-dates', async (req, res, next) => {
+        
+    //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
+    axios.interceptors.response.use((res)=>{
+        return res;
+    }, async function(error) {
+        const originalRequest = error.config;        
+        if(error.response.status === 401 && error.response.data.code ==='INVALID_TOKEN' && !originalRequest._retry){
+            try{
+                originalRequest._retry = true;
+                console.log('Token inválido. Renovando...');
+                const newToken = await getNewToken();
+                await renewTokenDB(newToken);
+                originalRequest.headers['Authorization'] = `Zoho-oauthtoken ${newToken}`;
+                return axios.request(originalRequest);
+            } catch(error){
+                console.log(error);
+                throw error;
+            }          
+            
+        }
+        return Promise.reject(error);
+    }
+    );
+
+
     try{
         const dates = await axios.get(process.env.GetUrl, {
             headers: { 
@@ -69,20 +60,45 @@ app.get('/appt-dates', getToken, async (req, res, next) => {
     }
 });
 
-app.post('/test', getToken, async (req, res, next) =>{
+app.post('/form', async (req, res, next) =>{
     const body = req.body;
-    console.log(req);
+    
+    //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
+    axios.interceptors.response.use((res)=>{
+        return res;
+    },async function(error) {
+        const originalRequest = error.config;        
+        if(error.response.status === 401 && error.response.data.code ==='INVALID_TOKEN' && !originalRequest._retry){
+            try{
+                originalRequest._retry = true;
+                console.log('Token inválido. Renovando...');
+                const newToken = await getNewToken();
+                await renewTokenDB(newToken);
+                originalRequest.headers['Authorization'] = `Zoho-oauthtoken ${newToken}`;
+                return axios.request(originalRequest);
+            } catch(error){
+                console.log(error);
+                throw error;
+            }          
+            
+        }
+        return Promise.reject(error);
+    }    
+    
+    );
+
     try{
         const newLeadEvent = await axios.post(process.env.PostUrl, body, {
             headers: { 
-                'Authorization': `Zoho-oauthtoken ${req.token}`, 
-                //'Content-Type': 'application/json',    
+                'Authorization': `Zoho-oauthtoken ${req.token}`,                   
               }
         });
-        console.log(newLeadEvent.data);
+        
+        
         res.status(newLeadEvent.status).json(newLeadEvent.data);
                
     } catch(err) {
+        //Throws errors unrelated to tokens
         console.log(err);
         res.status(500).json({
             msg: 'Error al agendar la cita. Intenta de nuevo más tarde',
