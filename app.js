@@ -24,14 +24,12 @@ app.get('/appt-dates', async (req, res, next) => {
         const originalRequest = error.config;        
         if(error.response.status === 401 && error.response.data.code ==='INVALID_TOKEN' && !originalRequest._retry){
             try{
-                originalRequest._retry = true;
-                console.log('Token inválido. Renovando...');
+                originalRequest._retry = true;                
                 const newToken = await getNewToken();
                 await renewTokenDB(newToken);
                 originalRequest.headers['Authorization'] = `Zoho-oauthtoken ${newToken}`;
                 return axios.request(originalRequest);
-            } catch(error){
-                console.log(error);
+            } catch(error){                
                 throw error;
             }          
             
@@ -47,8 +45,7 @@ app.get('/appt-dates', async (req, res, next) => {
                 'Authorization': `Zoho-oauthtoken ${req.token}`, 
                 //'Content-Type': 'application/json',    
               }
-        });
-        console.log(dates.data.details);
+        });        
         res.status(dates.status).json(dates.data.details);
                
     } catch(err) {
@@ -70,14 +67,12 @@ app.post('/form', async (req, res, next) =>{
         const originalRequest = error.config;        
         if(error.response.status === 401 && error.response.data.code ==='INVALID_TOKEN' && !originalRequest._retry){
             try{
-                originalRequest._retry = true;
-                console.log('Token inválido. Renovando...');
+                originalRequest._retry = true;                
                 const newToken = await getNewToken();
                 await renewTokenDB(newToken);
                 originalRequest.headers['Authorization'] = `Zoho-oauthtoken ${newToken}`;
                 return axios.request(originalRequest);
-            } catch(error){
-                console.log(error);
+            } catch(error){                
                 throw error;
             }          
             
@@ -107,6 +102,4 @@ app.post('/form', async (req, res, next) =>{
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+app.listen(port);
