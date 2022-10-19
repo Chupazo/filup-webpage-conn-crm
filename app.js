@@ -9,12 +9,15 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+//Connect to DB
 connectDb();
-app.use(cors());
 
+//Middlewares
+app.use(cors());
 app.use(express.json());
 app.use(findToken);
 
+//The client gets the event dates in order to disable them in the calendar
 app.get('/appt-dates', async (req, res, next) => {
         
     //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
@@ -42,13 +45,13 @@ app.get('/appt-dates', async (req, res, next) => {
     try{
         const dates = await axios.get(process.env.GetUrl, {
             headers: { 
-                'Authorization': `Zoho-oauthtoken ${req.token}`, 
-                //'Content-Type': 'application/json',    
+                'Authorization': `Zoho-oauthtoken ${req.token}`,                    
               }
         });        
         res.status(dates.status).json(dates.data.details);
                
     } catch(err) {
+        //Throws errors unrelated to tokens
         console.log(err);
         res.status(500).json({
             msg: 'Error al agendar la cita. Intenta de nuevo más tarde',
@@ -57,6 +60,7 @@ app.get('/appt-dates', async (req, res, next) => {
     }
 });
 
+//Send lead and appointment data to the CRM
 app.post('/form', async (req, res, next) =>{
     const body = req.body;
     
@@ -87,11 +91,8 @@ app.post('/form', async (req, res, next) =>{
             headers: { 
                 'Authorization': `Zoho-oauthtoken ${req.token}`,                   
               }
-        });
-        
-        
-        res.status(newLeadEvent.status).json(newLeadEvent.data);
-               
+        });       
+        res.status(newLeadEvent.status).json(newLeadEvent.data);               
     } catch(err) {
         //Throws errors unrelated to tokens
         console.log(err);
