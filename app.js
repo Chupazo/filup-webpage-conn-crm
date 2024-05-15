@@ -17,49 +17,6 @@ app.use(cors());
 app.use(express.json());
 app.use(findToken);
 
-//The client gets the event dates in order to disable them in the calendar
-app.get('/appt-dates', async (req, res, next) => {
-        
-    //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
-    axios.interceptors.response.use((res)=>{
-        return res;
-    }, async function(error) {
-        const originalRequest = error.config;        
-        if(error.response.status === 401 && error.response.data.code ==='INVALID_TOKEN' && !originalRequest._retry){
-            try{
-                originalRequest._retry = true;                
-                const newToken = await getNewToken();
-                await renewTokenDB(newToken);
-                originalRequest.headers['Authorization'] = `Zoho-oauthtoken ${newToken}`;
-                return axios.request(originalRequest);
-            } catch(error){                
-                throw error;
-            }          
-            
-        }
-        return Promise.reject(error);
-    }
-    );
-
-
-    try{
-        const dates = await axios.get(process.env.GetUrl, {
-            headers: { 
-                'Authorization': `Zoho-oauthtoken ${req.token}`,                    
-              }
-        });        
-        res.status(dates.status).json(dates.data.details);
-               
-    } catch(err) {
-        //Throws errors unrelated to tokens
-        console.log(err);
-        res.status(500).json({
-            msg: 'Error al agendar la cita. Intenta de nuevo más tarde',
-            err,
-        });
-    }
-});
-
 //Send lead and appointment data to the CRM
 app.post('/form', async (req, res, next) =>{
     const body = req.body;
@@ -97,7 +54,7 @@ app.post('/form', async (req, res, next) =>{
         //Throws errors unrelated to tokens
         console.log(err);
         res.status(500).json({
-            msg: 'Error al agendar la cita. Intenta de nuevo más tarde',
+            msg: 'Error al enviar los datos. Intenta de nuevo más tarde',
             err,
         });
     }
