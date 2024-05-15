@@ -19,7 +19,7 @@ app.use(findToken);
 
 //Send lead and appointment data to the CRM
 app.post('/form', async (req, res, next) =>{
-    const body = req.body;
+    const body = req;
     
     //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
     axios.interceptors.response.use((res)=>{
@@ -49,7 +49,7 @@ app.post('/form', async (req, res, next) =>{
                 'Authorization': `Zoho-oauthtoken ${req.token}`,                   
               }
         });       
-        res.status(newLeadEvent.status).json(newLeadEvent.data);               
+        res.status(newLeadEvent.status).json(newLeadEvent.data);            
     } catch(err) {
         //Throws errors unrelated to tokens
         console.log(err);
