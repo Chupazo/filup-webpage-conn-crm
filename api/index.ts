@@ -1,9 +1,9 @@
 const cors = require('cors');
 const express = require('express');
 const axios = require('axios');
-const connectDb = require('./db-config');
-const { renewTokenDB, findToken } = require('./db-functions');
-const { getNewToken } = require('./token-request');
+const connectDb = require('../db-config');
+const { renewTokenDB, findToken } = require('../db-functions');
+const { getNewToken } = require('../token-request');
 require('dotenv').config();
 
 const app = express();
@@ -61,3 +61,5 @@ app.post('/form', async (req, res, next) =>{
 });
 
 app.listen(port);
+
+module.exports = app;
