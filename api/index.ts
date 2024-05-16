@@ -23,7 +23,7 @@ app.use(findToken);
 //Send lead and appointment data to the CRM
 app.post('/form', async (req, res, next) =>{
 
-    const form = new formidable.IncomingForm();
+    /*const form = new formidable.IncomingForm();
 
     form.parse(req, (err, fields, files) => {
         if(err) {
@@ -33,9 +33,10 @@ app.post('/form', async (req, res, next) =>{
         req.fields = fields;
         req.files = files;
         next();
-    });
+    });*/
 
-    const body = req.fields;
+    //const body = req.fields;
+    const body = req;
     
     //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
     axios.interceptors.response.use((res)=>{
