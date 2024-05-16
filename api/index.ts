@@ -24,9 +24,6 @@ app.use(findToken);
 //Send lead and appointment data to the CRM
 app.post('/form', upload.none(), async (req, res, next) =>{
 
-    //const body = req.fields;
-    console.log(req);
-    console.log(req.body);
     const body = req.body;
     
     //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
@@ -57,7 +54,8 @@ app.post('/form', upload.none(), async (req, res, next) =>{
                 'Authorization': `Zoho-oauthtoken ${req.token}`,                   
               }
         });       
-        res.status(newLeadEvent.status).json(newLeadEvent.data);            
+        //res.status(newLeadEvent.status).json(newLeadEvent.data); 
+        res.redirect(301, 'https://filup.mx/control-de-asistencia');
     } catch(err) {
         //Throws errors unrelated to tokens
         console.log(err);
