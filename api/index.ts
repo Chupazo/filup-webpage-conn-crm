@@ -55,7 +55,7 @@ app.post('/form', upload.none(), async (req, res, next) =>{
               }
         });       
         //res.status(newLeadEvent.status).json(newLeadEvent.data); 
-        res.redirect(301, 'https://filup.mx/control-de-asistencia');
+        res.redirect(301, 'https://landing.filup.mx/gracias-main-page/');
     } catch(err) {
         //Throws errors unrelated to tokens
         console.log(err);
