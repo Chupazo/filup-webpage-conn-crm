@@ -16,24 +16,26 @@ connectDb();
 
 //Middlewares
 app.use(cors());
-app.use(express.json());
+//app.use(express.json());
 app.use(findToken);
 //app.use(parseForm);
 
 //Send lead and appointment data to the CRM
 app.post('/form', async (req, res, next) =>{
 
-    /*const form = new formidable.IncomingForm();
+    const form = new formidable.IncomingForm();
 
     form.parse(req, (err, fields, files) => {
         if(err) {
             next(err);
             return;
         }
-        req.fields = fields;
-        req.files = files;
+        /*req.fields = fields;
+        req.files = files;*/
+        console.log(fields);
+        console.log(files);
         next();
-    });*/
+    });
 
     //const body = req.fields;
     const body = req;
