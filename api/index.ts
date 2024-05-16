@@ -25,6 +25,8 @@ app.use(findToken);
 app.post('/form', upload.none(), async (req, res, next) =>{
 
     //const body = req.fields;
+    console.log(req);
+    console.log(req.body);
     const body = req.body;
     
     //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
