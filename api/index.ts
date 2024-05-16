@@ -2,10 +2,11 @@ const cors = require('cors');
 const express = require('express');
 const axios = require('axios');
 //const parseForm = require('../parse-form');
-const formidable = require('formidable');
+const multer = require('multer');
 const connectDb = require('../db-config');
 const { renewTokenDB, findToken } = require('../db-functions');
 const { getNewToken } = require('../token-request');
+const upload = multer();
 require('dotenv').config();
 
 const app = express();
@@ -16,29 +17,15 @@ connectDb();
 
 //Middlewares
 app.use(cors());
-//app.use(express.json());
+app.use(express.json());
 app.use(findToken);
-//app.use(parseForm);
+
 
 //Send lead and appointment data to the CRM
-app.post('/form', async (req, res, next) =>{
-
-    const form = new formidable.IncomingForm();
-
-    form.parse(req, (err, fields, files) => {
-        if(err) {
-            next(err);
-            return;
-        }
-        /*req.fields = fields;
-        req.files = files;*/
-        console.log(fields);
-        console.log(files);
-        next();
-    });
+app.post('/form', upload.none(), async (req, res, next) =>{
 
     //const body = req.fields;
-    const body = req;
+    const body = req.body;
     
     //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
     axios.interceptors.response.use((res)=>{
