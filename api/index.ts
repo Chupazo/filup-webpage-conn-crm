@@ -1,7 +1,8 @@
 const cors = require('cors');
 const express = require('express');
 const axios = require('axios');
-const parseForm = require('../parse-form');
+//const parseForm = require('../parse-form');
+const formidable = require('formidable');
 const connectDb = require('../db-config');
 const { renewTokenDB, findToken } = require('../db-functions');
 const { getNewToken } = require('../token-request');
@@ -17,10 +18,23 @@ connectDb();
 app.use(cors());
 app.use(express.json());
 app.use(findToken);
-app.use(parseForm);
+//app.use(parseForm);
 
 //Send lead and appointment data to the CRM
 app.post('/form', async (req, res, next) =>{
+
+    const form = new formidable.IncomingForm();
+
+    form.parse(req, (err, fields, files) => {
+        if(err) {
+            next(err);
+            return;
+        }
+        req.fields = fields;
+        req.files = files;
+        next();
+    });
+
     const body = req.fields;
     
     //Interceptor made to retry request if token expired. Calls getNewToken (refresh) function and adds new token to the header before retrying.
